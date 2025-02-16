@@ -1,5 +1,8 @@
 # After-Effects-Media-Browser
 
+![demo](https://github.com/user-attachments/assets/6d3dee1d-25ce-4c22-b5a1-089370cb7f41)
+
+
 ## Overview
 
 This project is a Windows Presentation Foundation (WPF) application designed as a media browser with integration into Adobe After Effects. It consists of two main components:
