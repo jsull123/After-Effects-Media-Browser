@@ -1,0 +1,237 @@
+﻿<Window x:Class="MediaManager2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
+        xmlns:local="clr-namespace:MediaManager2"   
+        mc:Ignorable="d"
+        Title="smm" Height="750" Width="1325"
+        Background="#232323"
+        PreviewMouseDown="Window_PreviewMouseDown"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+
+        <local:ScaleMultiplierConverter x:Key="ScaleMultiplierConverter" />
+
+        <!-- Media Template -->
+        <DataTemplate x:Key="MediaTemplate">
+            <StackPanel Orientation="Vertical"
+                        MouseEnter="FileItem_MouseEnter"
+                        MouseLeave="FileItem_MouseLeave">
+                <StackPanel.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Import" Click="ImportItem_Click"/>
+                        <MenuItem Header="Open File Location" Click="OpenFileLocation_Click"/>
+                        <MenuItem Header="{Binding Name}" Click="OpenFile_Click"/>
+                    </ContextMenu>
+                </StackPanel.ContextMenu>
+                <Image 
+                        Width="{Binding ElementName=SizeSlider, Path=Value, Converter={StaticResource ScaleMultiplierConverter}, ConverterParameter=256}" 
+                        Height="{Binding ElementName=SizeSlider, Path=Value, Converter={StaticResource ScaleMultiplierConverter}, ConverterParameter=144}"  
+                        Loaded="Media_Loaded"
+                        Unloaded="Media_Unloaded"
+                        MouseLeftButtonDown="FileItem_MouseLeftButtonDown"/>
+                <TextBlock Text="{Binding Name}" HorizontalAlignment="Center" TextWrapping="NoWrap" Width="100" Height="30"  TextTrimming="CharacterEllipsis" VerticalAlignment="Bottom" Foreground="{StaticResource TextColor1Brush}"/>
+            </StackPanel>
+        </DataTemplate>
+
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Select Folder -->
+        <Button Style="{StaticResource ButtonStyle2}" Content="Select Folder" HorizontalAlignment="Left" VerticalAlignment="Top" Click="SelectFolder_Click" Margin="10,15,0,0" Width="90" Height="25" Grid.Column="0" Grid.Row="0"/>
+
+        <!-- Settings -->
+        <Button Style="{StaticResource ButtonStyle2}" Content="Settings" HorizontalAlignment="Right" VerticalAlignment="Top" Click="SettingsButton_Click" Margin="0,15,10,0" Width="80" Height="25" Grid.Column="1" Grid.Row="0"/>
+
+        <!-- Play / Pause Button -->
+        <Button Name="PlayPauseButton" Click="PlayPauseButton_Click" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Column="1" Grid.Row="0" Margin="0,15,200,0">
+            <Button.Style>
+                <Style TargetType="Button">
+                    <!-- Remove background and border -->
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderBrush" Value="Transparent" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Grid Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                                    <Border Background="Transparent" />
+                                    <!-- Icon Placeholder -->
+                                    <Path Name="PlayPauseIcon" 
+                                        Data="M10,10 H16 V25 H10 Z M20,10 H26 V25 H20 Z"
+                                        Fill="{StaticResource PrimaryColorBrush}" 
+                                        Stretch="Uniform" 
+                                        HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center" />
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <!-- Hover Effect for the Icon -->
+                                    <Trigger Property="Button.IsMouseOver" Value="True">
+                                        <Setter TargetName="PlayPauseIcon" Property="Fill" Value="#a7cff7" />
+                                    </Trigger>
+                                    <!-- Pressed Effect for the Icon -->
+                                    <Trigger Property="Button.IsPressed" Value="True">
+                                        <Setter TargetName="PlayPauseIcon" Property="Fill" Value="DarkGray" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Button.Style>
+        </Button>
+
+        <!-- Slider -->
+        <Slider Name="SizeSlider" Minimum="0.5" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" HorizontalAlignment="Center" VerticalAlignment="Top" Width="150" Grid.Column="1" Grid.Row="0" ValueChanged="SizeSlider_ValueChanged" Margin="0,15,0,0"/>
+
+        <ProgressBar x:Name="CacheProgressBar"
+                 HorizontalAlignment="Center" VerticalAlignment="Top"
+                 Height="3"
+                 Minimum="0"
+                 Maximum="100" Margin="0,20,0,0"
+                 Grid.Column="1"
+                 Grid.Row="1"
+                 Panel.ZIndex="1"
+                 Visibility="Collapsed"
+                 Style="{StaticResource StripedProgressBarStyle}">
+            <ProgressBar.Width>
+                <Binding ElementName="FileListView" Path="ActualWidth" />
+            </ProgressBar.Width>
+        </ProgressBar>
+
+            <TextBlock
+            x:Name="FileListCenterText"
+            Grid.Column="1"
+            Grid.Row="1"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Panel.ZIndex="1"
+            IsHitTestVisible="False"
+            Foreground="{StaticResource TextColor2Brush}"
+            />
+
+        <!-- Active Folder -->
+        <Button x:Name="ActiveFolderButton"
+        Grid.Column="0"
+        Margin="10,0,0,0"
+        FontSize="12"
+        Content="Active Folder"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Top"
+        Foreground="{StaticResource TextColor1Brush}"
+        Background="Transparent"
+        BorderBrush="Transparent"
+        Click="ActiveFolderButton_Click" Grid.Row="1"/>
+
+        <!-- Search Box Placeholder -->
+        <TextBlock 
+            x:Name="SearchTextBoxPlaceholder"
+            Text="Search..."
+            Grid.Column="0"
+            Grid.Row="1"
+            HorizontalAlignment="Left"
+            Panel.ZIndex="1"
+            IsHitTestVisible="False"
+            Foreground="{StaticResource TextColor2Brush}"
+            VerticalAlignment="Top" Margin="17,24,0,0"/>
+
+        <!-- Search Box -->
+        <TextBox x:Name="SearchTextBox"
+        Grid.Row="1"
+        Width="180"
+        Height="25"
+        Margin="0,20,0,0"
+        VerticalAlignment="Top"
+        HorizontalAlignment="Center"
+        Foreground="{StaticResource TextColor1Brush}"
+        Background="{StaticResource SecondaryColorBrush}"
+        TextChanged="SearchTextBox_TextChanged"
+        GotFocus="SearchTextBox_GotFocus"
+        LostFocus="SearchTextBox_LostFocus"       
+        Padding="4"
+        BorderThickness="0"/>
+
+        <!-- Clear Search X -->
+        <Button x:Name="ClearSearchButton" 
+            Width="20" 
+            Height="20" 
+            Content="X" 
+            FontSize="12"
+            FontFamily="Arial"
+            Grid.Column="0"
+            Grid.Row="1"
+            HorizontalAlignment="Right" 
+            VerticalAlignment="Top"
+            Background="Transparent"
+            BorderThickness="0"
+            Visibility="Collapsed"
+            Foreground="{StaticResource TextColor2Brush}"
+            Margin="0,23,14,0"
+            Click="ClearSearchButton_Click">
+            <Button.Style>
+                <Style TargetType="Button">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderBrush" Value="Gray" />
+                    <Setter Property="Foreground" Value="Black" />
+                    <Setter Property="Cursor" Value="Hand" />
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="LightGray" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+
+        <!-- Cache Progress Box -->
+        <TextBlock
+        x:Name="CacheProgressText"
+        VerticalAlignment="Top"
+        HorizontalAlignment="Left"
+        Grid.Column="1" 
+        Grid.Row="1"
+        Margin="10,0,0,0"
+        Foreground="{StaticResource TextColor2Brush}"
+        />
+
+        <!-- Sidebar ListBox for Subfolders -->
+        <TreeView x:Name="FoldersTreeView"
+                  Grid.Column="0"
+                  Grid.Row="1"
+                  Margin="10,45,10,10"
+                  SelectedItemChanged="FoldersTreeView_SelectedItemChanged"
+                  Background="{StaticResource BackgroundColorBrush}"
+                  BorderBrush="{StaticResource SecondaryColorBrush}"
+                  BorderThickness="2,0,2,2">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Subfolders}">
+                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource TextColor1Brush}" />
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+
+        <!-- Files -->
+        <ListView Name="FileListView" Grid.Column="1" Grid.Row="1" Margin="10,20,10,10" 
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionMode="Extended"
+                  ItemTemplate="{StaticResource MediaTemplate}"
+                  Background="{StaticResource BackgroundColorBrush}"
+                  BorderBrush="{StaticResource SecondaryColorBrush}"
+                  PreviewMouseWheel="FileListView_PreviewMouseWheel"
+                  BorderThickness="2px">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <vwp:VirtualizingWrapPanel/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+        </ListView>
+    </Grid>
+</Window>
