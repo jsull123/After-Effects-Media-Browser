@@ -5,6 +5,8 @@
 
 ## Overview
 
+.NET Framework 6.0
+
 This project is a Windows Presentation Foundation (WPF) application designed as a media browser with integration into Adobe After Effects. It consists of two main components:
 
 **After Effects Plugin:**
